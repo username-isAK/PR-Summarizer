@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PR Summarizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen w-full m-2 p-4">
+
+  <h1 class="text-3xl font-bold mb-6 text-center">GitHub Pull Request Summarizer</h1>
+
+  <!-- PR Form -->
+  <form id="prForm" class="bg-white p-6 rounded shadow-md w-full">
+    <div class="mb-4">
+      <label class="block font-medium">Owner</label>
+      <input type="text" id="owner" required class="w-full border rounded px-3 py-2">
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Repo</label>
+      <input type="text" id="repo" required class="w-full border rounded px-3 py-2">
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">PR Number</label>
+      <input type="number" id="pr_number" required class="w-full border rounded px-3 py-2">
+    </div>
+    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Summarize PR</button>
+  </form>
+
+  <!-- PR Info -->
+  <div id="prInfo" class="mt-6 p-4 bg-white rounded shadow-md w-full"></div>
+
+  <!-- Tab Buttons -->
+  <div class="mt-4 flex space-x-2">
+    <button data-tab="short" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Short</button>
+    <button data-tab="detailed" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Detailed</button>
+    <button data-tab="release" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Release Notes</button>
+  </div>
+
+  <!-- Summary -->
+  <div id="summary" class="mt-4 p-4 bg-white rounded shadow-md w-full"></div>
+
+  <!-- Files Table -->
+  <div id="filesTableContainer" class="mt-4 overflow-x-auto w-full"></div>
+
+  <!-- Copy Button -->
+  <div class="mt-4">
+    <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Copy Summary</button>
+  </div>
+
+<script>
+  const form = document.getElementById("prForm");
+  const summaryDiv = document.getElementById("summary");
+  const prInfoDiv = document.getElementById("prInfo");
+  const filesTableContainer = document.getElementById("filesTableContainer");
+  const copyBtn = document.getElementById("copyBtn");
+
+  let currentSummaries = {};
+
+  // Function to format AI-generated text
+  function formatSummary(text) {
+      if (!text) return '';
+
+      // Convert **text** to bold
+      let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      // Convert ### to semi-bold
+      formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+
+      // Convert ## to semi-bold
+      formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+
+      // Convert # to semi-bold
+      formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+
+      // Split into lines for bullet point processing
+      const lines = formatted.split('\n');
+      let result = [];
+      let inList = false;
+
+      for (let line of lines) {
+          // Check if line starts with - or * followed by space (bullet point)
+          if (/^[-*]\s/.test(line)) {
+              if (!inList) {
+                  result.push('<ul class="list-disc ml-6 my-2">');
+                  inList = true;
+              }
+              // Remove the bullet marker and add as list item
+              const content = line.replace(/^[-*]\s+/, '');
+              result.push(`<li>${content}</li>`);
+          } else {
+              if (inList) {
+                  result.push('</ul>');
+                  inList = false;
+              }
+              if (line.trim()) {
+                  result.push(`<div>${line}</div>`);
+              } else {
+                  result.push('<div class="h-2"></div>');
+              }
+          }
+      }
+
+      if (inList) {
+          result.push('</ul>');
+      }
+
+      return result.join('');
+  }
+
+  form.onsubmit = async (e) => {
+      e.preventDefault();
+      summaryDiv.innerHTML = "<p>Fetching PR data...</p>";
+      prInfoDiv.innerHTML = "";
+      filesTableContainer.innerHTML = "";
+
+      const owner = document.getElementById("owner").value.trim();
+      const repo = document.getElementById("repo").value.trim();
+      const pr_number = Number.parseInt(document.getElementById("pr_number").value);
+
+      try {
+          // Fetch PR metadata
+          const fetchRes = await fetch("http://127.0.0.1:8000/fetch-pr", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ owner, repo, pr_number })
+          });
+          const fetchData = await fetchRes.json();
+          if (!fetchData.success) {
+              summaryDiv.innerHTML = `<p>Error fetching PR: ${fetchData.error}</p>`;
+              return;
+          }
+
+          const pr = fetchData.pr;
+
+          // Display PR info
+          prInfoDiv.innerHTML = `
+              <p><strong>Title:</strong> ${pr.title}</p>
+              <p><strong>Author:</strong> ${pr.user}</p>
+              <p><strong>State:</strong> ${pr.state}</p>
+              <p><strong>Labels:</strong> ${pr.labels.join(", ") || "None"}</p>
+              <p><strong>Assignees:</strong> ${pr.assignees.join(", ") || "None"}</p>
+              <p><strong>URL:</strong> <a href="${pr.url}" target="_blank" class="text-blue-600 underline">${pr.url}</a></p>
+          `;
+
+          // Files table
+          if (pr.diff_summary.length > 0) {
+              const table = document.createElement("table");
+              table.className = "min-w-full bg-white border border-gray-300";
+              table.innerHTML = `
+                  <thead class="bg-gray-100">
+                      <tr>
+                          <th class="border px-3 py-1 text-left">File</th>
+                          <th class="border px-3 py-1 text-left text-green-600">Additions</th>
+                          <th class="border px-3 py-1 text-left text-red-600">Deletions</th>
+                          <th class="border px-3 py-1 text-left">Total Changes</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      ${pr.diff_summary.map(f => `
+                          <tr>
+                              <td class="border px-3 py-1">${f.filename}</td>
+                              <td class="border px-3 py-1 text-green-600">+${f.additions}</td>
+                              <td class="border px-3 py-1 text-red-600">-${f.deletions}</td>
+                              <td class="border px-3 py-1">${f.changes}</td>
+                          </tr>`).join('')}
+                  </tbody>
+              `;
+              filesTableContainer.appendChild(table);
+          }
+
+          // Summarize PR
+          summaryDiv.innerHTML = "<p>Generating summary...</p>";
+          const summarizeRes = await fetch("http://127.0.0.1:8000/summarize-pr", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(pr)
+          });
+          const summarizeData = await summarizeRes.json();
+          if (!summarizeData.success) {
+              summaryDiv.innerHTML = `<p>Error summarizing PR: ${summarizeData.error}</p>`;
+              return;
+          }
+
+          const summaries = summarizeData.summary;
+          currentSummaries = summaries;
+
+          // Setup tab buttons with click handlers
+          document.querySelectorAll(".tab-btn").forEach(btn => {
+              btn.onclick = () => {
+                  // Remove active state from all buttons
+                  document.querySelectorAll(".tab-btn").forEach(b => {
+                      b.classList.remove('bg-blue-600', 'text-white');
+                      b.classList.add('bg-gray-200');
+                  });
+
+                  // Add active state to clicked button
+                  btn.classList.remove('bg-gray-200');
+                  btn.classList.add('bg-blue-600', 'text-white');
+
+                  const tabName = btn.getAttribute("data-tab");
+                  summaryDiv.innerHTML = formatSummary(summaries[tabName]);
+              }
+          });
+
+          // Set short button as active by default
+          const shortBtn = document.querySelector('[data-tab="short"]');
+          shortBtn.classList.remove('bg-gray-200');
+          shortBtn.classList.add('bg-blue-600', 'text-white');
+
+          // Display short summary by default
+          summaryDiv.innerHTML = formatSummary(summaries.short);
+
+      } catch (err) {
+          summaryDiv.innerHTML = `<p>Failed: ${err.message}</p>`;
+      }
+  };
+
+  // Copy summary
+  copyBtn.onclick = () => {
+      const summaryText = summaryDiv.innerText || summaryDiv.textContent;
+      navigator.clipboard.writeText(summaryText);
+      alert("Summary copied!");
+  };
+</script>
+
+</body>
+</html>
