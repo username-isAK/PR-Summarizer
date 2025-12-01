@@ -251,7 +251,7 @@ form.onsubmit = async (e) => {
 
     try {
         // Fetch PR metadata
-        const fetchRes = await fetch("http://127.0.0.1:8000/fetch-pr", {
+        const fetchRes = await fetch("https://pr-summarizer-hob7.onrender.com/fetch-pr", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ owner, repo, pr_number })
@@ -336,7 +336,7 @@ form.onsubmit = async (e) => {
             <span class="text-gray-600">Generating AI summary...</span>
           </div>
         `;
-        const summarizeRes = await fetch("http://127.0.0.1:8000/summarize-pr", {
+        const summarizeRes = await fetch("https://pr-summarizer-hob7.onrender.com/summarize-pr", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(pr)
