@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -5,6 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from github import get_pull_request
 from summarizer import summarize_pr
+from groq import Groq
+from dotenv import load_dotenv
+
+load_dotenv()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY)
 
 app = FastAPI()
 
@@ -42,3 +49,26 @@ def summarize_pr_endpoint(pr_data: dict):
         return {"success": True, "summary": summary}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+@app.post("/explain_patch")
+def explain_patch(data: dict):
+    filename = data["filename"]
+    patch = data["patch"]
+
+    prompt = f"""
+    Explain the following code patch clearly:
+    File: {filename}
+
+    Patch:
+    {patch}
+    """
+
+    resp = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": "You explain code diffs with accuracy."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return {"explanation": resp.choices[0].message.content}

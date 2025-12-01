@@ -64,7 +64,6 @@
 <body class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen p-4 md:p-8">
 
   <div class="max-w-5xl mx-auto">
-    <!-- Header -->
     <div class="text-center mb-8">
       <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         GitHub Pull Request Summarizer
@@ -72,7 +71,6 @@
       <p class="text-gray-600 text-sm md:text-base">AI-powered pull request analysis and summarization</p>
     </div>
 
-    <!-- PR Form -->
     <div class="glass-effect rounded-2xl shadow-xl p-6 md:p-8 mb-6 card-hover">
       <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +109,6 @@
       </form>
     </div>
 
-    <!-- PR Info -->
     <div id="prInfoContainer" class="hidden">
       <div id="prInfo" class="glass-effect rounded-2xl shadow-xl p-6 mb-6 card-hover">
         <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
@@ -124,7 +121,6 @@
       </div>
     </div>
 
-    <!-- Summary Section -->
     <div id="summaryContainer" class="hidden">
       <!-- Tab Buttons -->
       <div class="flex flex-wrap gap-2 mb-4">
@@ -139,7 +135,6 @@
         </button>
       </div>
 
-      <!-- Summary Content -->
       <div class="glass-effect rounded-2xl shadow-xl relative card-hover overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1 gradient-bg"></div>
         <button id="copySummaryBtn"
@@ -153,7 +148,6 @@
       </div>
     </div>
 
-    <!-- Files Table -->
     <div id="filesTableContainer" class="mt-6 hidden">
       <div class="glass-effect rounded-2xl shadow-xl overflow-hidden card-hover">
         <div class="p-6">
@@ -170,151 +164,143 @@
   </div>
 
 <script>
-const form = document.getElementById("prForm");
-const summaryDiv = document.getElementById("summary");
-const prInfoContent = document.getElementById("prInfoContent");
-const prInfoContainer = document.getElementById("prInfoContainer");
-const summaryContainer = document.getElementById("summaryContainer");
-const filesTable = document.getElementById("filesTable");
-const filesTableContainer = document.getElementById("filesTableContainer");
-const copySummaryBtn = document.getElementById("copySummaryBtn");
+  const form = document.getElementById("prForm");
+  const summaryDiv = document.getElementById("summary");
+  const prInfoContent = document.getElementById("prInfoContent");
+  const prInfoContainer = document.getElementById("prInfoContainer");
+  const summaryContainer = document.getElementById("summaryContainer");
+  const filesTable = document.getElementById("filesTable");
+  const filesTableContainer = document.getElementById("filesTableContainer");
+  const copySummaryBtn = document.getElementById("copySummaryBtn");
+  let currentPR = null;
 
-let currentSummaries = {};
+  let currentSummaries = {};
 
-// Function to format AI-generated text
-function formatSummary(text) {
-    if (!text) return '';
+  function formatSummary(text) {
+      if (!text) return '';
 
-    // Convert **text** to bold
-    let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
+      let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
 
-    // Convert ### to semi-bold
-    formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-2xl text-gray-800">$1</span>$2');
+      formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
 
-    // Convert ## to semi-bold
-    formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
+      formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
 
-    // Convert # to semi-bold
-    formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
+      formatted = formatted.replace(/#+\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
 
-    // Split into lines for bullet point processing
-    const lines = formatted.split('\n');
-    let result = [];
-    let inList = false;
+      const lines = formatted.split('\n');
+      let result = [];
+      let inList = false;
 
-    for (let line of lines) {
-        // Check if line starts with - or * followed by space (bullet point)
-        if (/^[-*]\s/.test(line)) {
-            if (!inList) {
-                result.push('<ul class="list-disc ml-6 my-3 space-y-1">');
-                inList = true;
-            }
-            // Remove the bullet marker and add as list item
-            const content = line.replace(/^[-*]\s+/, '');
-            result.push(`<li class="text-gray-700">${content}</li>`);
-        } else {
-            if (inList) {
-                result.push('</ul>');
-                inList = false;
-            }
-            if (line.trim()) {
-                result.push(`<div class="text-gray-700 leading-relaxed my-2">${line}</div>`);
-            } else {
-                result.push('<div class="h-3"></div>');
-            }
-        }
-    }
+      for (let line of lines) {
+          if (/^[-*]\s/.test(line)) {
+              if (!inList) {
+                  result.push('<ul class="list-disc ml-6 my-3 space-y-1">');
+                  inList = true;
+              }
+              const content = line.replace(/^[-*]\s+/, '');
+              result.push(`<li class="text-gray-700">${content}</li>`);
+          } else {
+              if (inList) {
+                  result.push('</ul>');
+                  inList = false;
+              }
+              if (line.trim()) {
+                  result.push(`<div class="text-gray-700 leading-relaxed my-2">${line}</div>`);
+              } else {
+                  result.push('<div class="h-3"></div>');
+              }
+          }
+      }
 
-    if (inList) {
-        result.push('</ul>');
-    }
+      if (inList) {
+          result.push('</ul>');
+      }
 
-    return result.join('');
-}
+      return result.join('');
+  }
 
-form.onsubmit = async (e) => {
-    e.preventDefault();
+  form.onsubmit = async (e) => {
+      e.preventDefault();
 
-    // Show loading state
-    summaryContainer.classList.remove('hidden');
-    summaryDiv.innerHTML = `
-      <div class="flex items-center justify-center gap-3">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        <span class="text-gray-600">Fetching PR data...</span>
-      </div>
-    `;
-    prInfoContainer.classList.add('hidden');
-    filesTableContainer.classList.add('hidden');
+      summaryContainer.classList.remove('hidden');
+      summaryDiv.innerHTML = `
+        <div class="flex items-center justify-center gap-3">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span class="text-gray-600">Fetching PR data...</span>
+        </div>
+      `;
+      prInfoContainer.classList.add('hidden');
+      filesTableContainer.classList.add('hidden');
 
-    const owner = document.getElementById("owner").value.trim();
-    const repo = document.getElementById("repo").value.trim();
-    const pr_number = Number.parseInt(document.getElementById("pr_number").value);
+      const owner = document.getElementById("owner").value.trim();
+      const repo = document.getElementById("repo").value.trim();
+      const pr_number = Number.parseInt(document.getElementById("pr_number").value);
 
-    try {
-        // Fetch PR metadata
-        const fetchRes = await fetch("https://pr-summarizer-hob7.onrender.com/fetch-pr", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ owner, repo, pr_number })
-        });
-        const fetchData = await fetchRes.json();
-        if (!fetchData.success) {
-            summaryDiv.innerHTML = `
-              <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
-                <strong>Error:</strong> ${fetchData.error}
+      try {
+          const fetchRes = await fetch("https://pr-summarizer-hob7.onrender.com/fetch-pr", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ owner, repo, pr_number })
+          });
+          const fetchData = await fetchRes.json();
+          if (!fetchData.success) {
+              summaryDiv.innerHTML = `
+                <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <strong>Error:</strong> ${fetchData.error}
+                </div>
+              `;
+              return;
+          }
+
+          const pr = fetchData.pr;
+          currentPR = pr;
+
+          prInfoContainer.classList.remove('hidden');
+          prInfoContent.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">Title:</span>
+                  <span class="text-gray-900">${pr.title}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">Author:</span>
+                  <span class="text-gray-900">${pr.user}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">State:</span>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pr.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}">
+                    ${pr.state}
+                  </span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">Labels:</span>
+                  <span class="text-gray-900">${pr.labels.join(", ") || "None"}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">Assignees:</span>
+                  <span class="text-gray-900">${pr.assignees.join(", ") || "None"}</span>
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="font-semibold text-gray-700 min-w-20">URL:</span>
+                  <a href="${pr.url}" target="_blank" class="text-purple-600 hover:text-purple-700 underline break-all">${pr.url}</a>
+                </div>
               </div>
-            `;
-            return;
-        }
+          `;
 
-        const pr = fetchData.pr;
-
-        // Display PR info
-        prInfoContainer.classList.remove('hidden');
-        prInfoContent.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">Title:</span>
-                <span class="text-gray-900">${pr.title}</span>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">Author:</span>
-                <span class="text-gray-900">${pr.user}</span>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">State:</span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pr.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}">
-                  ${pr.state}
-                </span>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">Labels:</span>
-                <span class="text-gray-900">${pr.labels.join(", ") || "None"}</span>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">Assignees:</span>
-                <span class="text-gray-900">${pr.assignees.join(", ") || "None"}</span>
-              </div>
-              <div class="flex items-start gap-2">
-                <span class="font-semibold text-gray-700 min-w-20">URL:</span>
-                <a href="${pr.url}" target="_blank" class="text-purple-600 hover:text-purple-700 underline break-all">${pr.url}</a>
-              </div>
-            </div>
-        `;
-
-        // Files table
-        if (pr.diff_summary.length > 0) {
-            filesTableContainer.classList.remove('hidden');
-            const table = document.createElement("table");
-            table.className = "min-w-full";
-            table.innerHTML = `
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">File</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-green-700">Additions</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-red-700">Deletions</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
-                    </tr>
+          // Files table
+          if (pr.diff_summary.length > 0) {
+              filesTableContainer.classList.remove('hidden');
+              const table = document.createElement("table");
+              table.className = "min-w-full";
+              table.innerHTML = `
+              <thead>
+                  <tr class="border-b border-gray-200">
+                      <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">File</th>
+                      <th class="px-4 py-3 text-left text-sm font-semibold text-green-700">Additions</th>
+                      <th class="px-4 py-3 text-left text-sm font-semibold text-red-700">Deletions</th>
+                      <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                      <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                  </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     ${pr.diff_summary.map(f => `
@@ -323,102 +309,145 @@ form.onsubmit = async (e) => {
                             <td class="px-4 py-3 text-sm text-green-600 font-medium">+${f.additions}</td>
                             <td class="px-4 py-3 text-sm text-red-600 font-medium">-${f.deletions}</td>
                             <td class="px-4 py-3 text-sm text-gray-700 font-medium">${f.changes}</td>
-                        </tr>`).join('')}
+                            <td class="px-4 py-3 text-sm text-gray-700 font-medium flex gap-2">
+                                <button class="view-patch-btn px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200" data-file="${f.filename}">View Patch</button>
+                                <button class="explain-patch-btn px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200" data-file="${f.filename}">Explain Patch</button>
+                            </td>
+                        </tr>
+                        <tr class="patch-row hidden bg-gray-50">
+                            <td colspan="5" class="px-4 py-3 text-sm text-gray-800 font-mono">
+                                <pre class="patch-content whitespace-pre-wrap"></pre>
+                            </td>
+                        </tr>
+                    `).join('')}
                 </tbody>
             `;
-            filesTable.innerHTML = '';
-            filesTable.appendChild(table);
-        }
 
-        // Summarize PR
-        summaryDiv.innerHTML = `
-          <div class="flex items-center justify-center gap-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <span class="text-gray-600">Generating AI summary...</span>
-          </div>
-        `;
-        const summarizeRes = await fetch("https://pr-summarizer-hob7.onrender.com/summarize-pr", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(pr)
-        });
-        const summarizeData = await summarizeRes.json();
-        if (!summarizeData.success) {
-            summaryDiv.innerHTML = `
-              <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
-                <strong>Error:</strong> ${summarizeData.error}
-              </div>
-            `;
-            return;
-        }
+              filesTable.innerHTML = '';
+              filesTable.appendChild(table);
+          }
 
-        const summaries = summarizeData.summary;
-        currentSummaries = summaries;
+          summaryDiv.innerHTML = `
+            <div class="flex items-center justify-center gap-3">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span class="text-gray-600">Generating AI summary...</span>
+            </div>
+          `;
+          const summarizeRes = await fetch("https://pr-summarizer-hob7.onrender.com/summarize-pr", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(pr)
+          });
+          const summarizeData = await summarizeRes.json();
+          if (!summarizeData.success) {
+              summaryDiv.innerHTML = `
+                <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <strong>Error:</strong> ${summarizeData.error}
+                </div>
+              `;
+              return;
+          }
 
-        // Reset all buttons first
-        document.querySelectorAll(".tab-btn").forEach(b => {
-            b.classList.remove('tab-active');
-        });
+          const summaries = summarizeData.summary;
+          currentSummaries = summaries;
 
-        // Setup tab buttons with click handlers
-        document.querySelectorAll(".tab-btn").forEach(btn => {
+          document.querySelectorAll(".tab-btn").forEach(b => {
+              b.classList.remove('tab-active');
+          });
+
+          // Setup tab buttons with click handlers
+          document.querySelectorAll(".tab-btn").forEach(btn => {
+              btn.onclick = () => {
+                  document.querySelectorAll(".tab-btn").forEach(b => {
+                      b.classList.remove('tab-active');
+                  });
+
+                  btn.classList.add('tab-active');
+
+                  const tabName = btn.getAttribute("data-tab");
+                  summaryDiv.innerHTML = formatSummary(summaries[tabName]);
+              }
+          });
+
+          const shortBtn = document.querySelector('[data-tab="short"]');
+          shortBtn.classList.add('tab-active');
+
+          summaryDiv.innerHTML = formatSummary(summaries.short);
+
+        document.querySelectorAll(".view-patch-btn").forEach(btn => {
             btn.onclick = () => {
-                // Remove active state from all buttons
-                document.querySelectorAll(".tab-btn").forEach(b => {
-                    b.classList.remove('tab-active');
-                });
+                const tr = btn.closest("tr");
+                const patchRow = tr.nextElementSibling;
+                const patchContent = patchRow.querySelector(".patch-content");
+                const patch = currentPR.files.find(f => f.filename === btn.dataset.file)?.patch || "Patch not available";
 
-                // Add active state to clicked button
-                btn.classList.add('tab-active');
+                patchRow.classList.toggle("hidden");
 
-                const tabName = btn.getAttribute("data-tab");
-                summaryDiv.innerHTML = formatSummary(summaries[tabName]);
-            }
+                patchContent.textContent = patch;
+            };
         });
 
-        // Set short button as active by default
-        const shortBtn = document.querySelector('[data-tab="short"]');
-        shortBtn.classList.add('tab-active');
+        document.querySelectorAll(".explain-patch-btn").forEach(btn => {
+            btn.onclick = async () => {
+                const tr = btn.closest("tr");
+                const patchRow = tr.nextElementSibling;
+                const patchContent = patchRow.querySelector(".patch-content");
 
-        // Display short summary by default
-        summaryDiv.innerHTML = formatSummary(summaries.short);
+                const patch = currentPR.files.find(f => f.filename === btn.dataset.file)?.patch || "";
 
-    } catch (err) {
-        summaryDiv.innerHTML = `
-          <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
-            <strong>Error:</strong> ${err.message}
-          </div>
-        `;
-    }
-};
+                patchRow.classList.remove("hidden");
+                patchContent.textContent = "Generating explanation...";
 
-// Copy summary
-copySummaryBtn.onclick = async () => {
-    const summaryText = summaryDiv.innerText || summaryDiv.textContent;
+                try {
+                    const explainRes = await fetch("https://pr-summarizer-hob7.onrender.com/explain_patch", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            filename: btn.dataset.file,
+                            patch: patch
+                        })
+                    });
 
-    try {
-        await navigator.clipboard.writeText(summaryText);
+                    const explainData = await explainRes.json();
+                    patchContent.innerHTML = formatSummary(explainData.explanation) || "Error generating explanation";
+                } catch (err) {
+                    patchContent.textContent = "Error: " + err.message;
+                }
+            };
+        });
+      } catch (err) {
+          summaryDiv.innerHTML = `
+            <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+              <strong>Error:</strong> ${err.message}
+            </div>
+          `;
+      }
+  };
 
-        // Visual feedback - change to checkmark
-        copySummaryBtn.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        `;
+  copySummaryBtn.onclick = async () => {
+      const summaryText = summaryDiv.innerText || summaryDiv.textContent;
 
-        // Change back to copy icon after 2 seconds
-        setTimeout(() => {
-            copySummaryBtn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            `;
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy text: ', err);
-        alert('Failed to copy text');
-    }
-};
+      try {
+          await navigator.clipboard.writeText(summaryText);
+
+          copySummaryBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          `;
+
+          setTimeout(() => {
+              copySummaryBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              `;
+          }, 2000);
+      } catch (err) {
+          console.error('Failed to copy text: ', err);
+          alert('Failed to copy text');
+      }
+  };
 </script>
 
 </body>

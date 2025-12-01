@@ -32,7 +32,8 @@ def get_pull_request(owner: str, repo: str, pr_number: int) -> dict:
             "filename": f.get("filename"),
             "additions": f.get("additions"),
             "deletions": f.get("deletions"),
-            "changes": f.get("changes")
+            "changes": f.get("changes"),
+            "patch": f.get("patch")
         }
         for f in files_data
     ]
@@ -45,5 +46,6 @@ def get_pull_request(owner: str, repo: str, pr_number: int) -> dict:
         "state": pr_data.get("state"),
         "labels": [label["name"] for label in pr_data.get("labels", [])],
         "assignees": [user["login"] for user in pr_data.get("assignees", [])],
-        "diff_summary": diff_summary
+        "diff_summary": diff_summary,
+        "files": diff_summary
     }
