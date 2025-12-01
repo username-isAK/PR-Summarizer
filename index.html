@@ -189,13 +189,13 @@ function formatSummary(text) {
     let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
 
     // Convert ### to semi-bold
-    formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
+    formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-2xl text-gray-800">$1</span>$2');
 
     // Convert ## to semi-bold
     formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
 
     // Convert # to semi-bold
-    formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold text-2xl text-gray-800">$1</span>$2');
+    formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
 
     // Split into lines for bullet point processing
     const lines = formatted.split('\n');
