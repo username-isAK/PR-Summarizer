@@ -4,223 +4,420 @@
   <meta charset="UTF-8">
   <title>PR Summarizer</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .input-focus:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-gradient:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .tab-active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .card-hover {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .copy-icon {
+      transition: all 0.2s;
+    }
+
+    .copy-icon:hover {
+      transform: scale(1.1);
+    }
+  </style>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen w-full m-2 p-4">
+<body class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen p-4 md:p-8">
 
-  <h1 class="text-3xl font-bold mb-6 text-center">GitHub Pull Request Summarizer</h1>
-
-  <!-- PR Form -->
-  <form id="prForm" class="bg-white p-6 rounded shadow-md w-full">
-    <div class="mb-4">
-      <label class="block font-medium">Owner</label>
-      <input type="text" id="owner" required class="w-full border rounded px-3 py-2">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        GitHub Pull Request Summarizer
+      </h1>
+      <p class="text-gray-600 text-sm md:text-base">AI-powered pull request analysis and summarization</p>
     </div>
-    <div class="mb-4">
-      <label class="block font-medium">Repo</label>
-      <input type="text" id="repo" required class="w-full border rounded px-3 py-2">
+
+    <!-- PR Form -->
+    <div class="glass-effect rounded-2xl shadow-xl p-6 md:p-8 mb-6 card-hover">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        Enter PR Details
+      </h2>
+      <form id="prForm" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Repository Owner</label>
+            <input type="text" id="owner" required
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 input-focus transition-all"
+              placeholder="octocat">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Repository Name</label>
+            <input type="text" id="repo" required
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 input-focus transition-all"
+              placeholder="Hello-World">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">PR Number</label>
+            <input type="number" id="pr_number" required
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 input-focus transition-all"
+              placeholder="123">
+          </div>
+        </div>
+        <button type="submit"
+          class="btn-gradient text-white px-8 py-3 rounded-lg font-semibold w-full md:w-auto flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Analyze PR
+        </button>
+      </form>
     </div>
-    <div class="mb-4">
-      <label class="block font-medium">PR Number</label>
-      <input type="number" id="pr_number" required class="w-full border rounded px-3 py-2">
+
+    <!-- PR Info -->
+    <div id="prInfoContainer" class="hidden">
+      <div id="prInfo" class="glass-effect rounded-2xl shadow-xl p-6 mb-6 card-hover">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Pull Request Information
+        </h2>
+        <div id="prInfoContent"></div>
+      </div>
     </div>
-    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Summarize PR</button>
-  </form>
 
-  <!-- PR Info -->
-  <div id="prInfo" class="mt-6 p-4 bg-white rounded shadow-md w-full"></div>
+    <!-- Summary Section -->
+    <div id="summaryContainer" class="hidden">
+      <!-- Tab Buttons -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button data-tab="short" class="tab-btn px-5 py-2.5 rounded-lg font-medium transition-all bg-white shadow-md hover:shadow-lg">
+          Short Summary
+        </button>
+        <button data-tab="detailed" class="tab-btn px-5 py-2.5 rounded-lg font-medium transition-all bg-white shadow-md hover:shadow-lg">
+          Detailed Analysis
+        </button>
+        <button data-tab="release" class="tab-btn px-5 py-2.5 rounded-lg font-medium transition-all bg-white shadow-md hover:shadow-lg">
+          Release Notes
+        </button>
+      </div>
 
-  <!-- Tab Buttons -->
-  <div class="mt-4 flex space-x-2">
-    <button data-tab="short" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Short</button>
-    <button data-tab="detailed" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Detailed</button>
-    <button data-tab="release" class="tab-btn px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Release Notes</button>
-  </div>
+      <!-- Summary Content -->
+      <div class="glass-effect rounded-2xl shadow-xl relative card-hover overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 gradient-bg"></div>
+        <button id="copySummaryBtn"
+          class="absolute top-4 right-4 text-gray-500 hover:text-purple-600 copy-icon p-2 rounded-lg hover:bg-purple-50"
+          title="Copy summary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+        <div id="summary" class="p-6 md:p-8 pt-12"></div>
+      </div>
+    </div>
 
-  <!-- Summary -->
-  <div id="summary" class="mt-4 p-4 bg-white rounded shadow-md w-full"></div>
-
-  <!-- Files Table -->
-  <div id="filesTableContainer" class="mt-4 overflow-x-auto w-full"></div>
-
-  <!-- Copy Button -->
-  <div class="mt-4">
-    <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">Copy Summary</button>
+    <!-- Files Table -->
+    <div id="filesTableContainer" class="mt-6 hidden">
+      <div class="glass-effect rounded-2xl shadow-xl overflow-hidden card-hover">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Changed Files
+          </h2>
+          <div id="filesTable" class="overflow-x-auto"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
-  const form = document.getElementById("prForm");
-  const summaryDiv = document.getElementById("summary");
-  const prInfoDiv = document.getElementById("prInfo");
-  const filesTableContainer = document.getElementById("filesTableContainer");
-  const copyBtn = document.getElementById("copyBtn");
+const form = document.getElementById("prForm");
+const summaryDiv = document.getElementById("summary");
+const prInfoContent = document.getElementById("prInfoContent");
+const prInfoContainer = document.getElementById("prInfoContainer");
+const summaryContainer = document.getElementById("summaryContainer");
+const filesTable = document.getElementById("filesTable");
+const filesTableContainer = document.getElementById("filesTableContainer");
+const copySummaryBtn = document.getElementById("copySummaryBtn");
 
-  let currentSummaries = {};
+let currentSummaries = {};
 
-  // Function to format AI-generated text
-  function formatSummary(text) {
-      if (!text) return '';
+// Function to format AI-generated text
+function formatSummary(text) {
+    if (!text) return '';
 
-      // Convert **text** to bold
-      let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Convert **text** to bold
+    let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
 
-      // Convert ### to semi-bold
-      formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+    // Convert ### to semi-bold
+    formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
 
-      // Convert ## to semi-bold
-      formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+    // Convert ## to semi-bold
+    formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
 
-      // Convert # to semi-bold
-      formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold">$1</span>$2');
+    // Convert # to semi-bold
+    formatted = formatted.replace(/#\s*(.+?)(\n|$)/g, '<span class="font-semibold text-2xl text-gray-800">$1</span>$2');
 
-      // Split into lines for bullet point processing
-      const lines = formatted.split('\n');
-      let result = [];
-      let inList = false;
+    // Split into lines for bullet point processing
+    const lines = formatted.split('\n');
+    let result = [];
+    let inList = false;
 
-      for (let line of lines) {
-          // Check if line starts with - or * followed by space (bullet point)
-          if (/^[-*]\s/.test(line)) {
-              if (!inList) {
-                  result.push('<ul class="list-disc ml-6 my-2">');
-                  inList = true;
-              }
-              // Remove the bullet marker and add as list item
-              const content = line.replace(/^[-*]\s+/, '');
-              result.push(`<li>${content}</li>`);
-          } else {
-              if (inList) {
-                  result.push('</ul>');
-                  inList = false;
-              }
-              if (line.trim()) {
-                  result.push(`<div>${line}</div>`);
-              } else {
-                  result.push('<div class="h-2"></div>');
-              }
-          }
-      }
+    for (let line of lines) {
+        // Check if line starts with - or * followed by space (bullet point)
+        if (/^[-*]\s/.test(line)) {
+            if (!inList) {
+                result.push('<ul class="list-disc ml-6 my-3 space-y-1">');
+                inList = true;
+            }
+            // Remove the bullet marker and add as list item
+            const content = line.replace(/^[-*]\s+/, '');
+            result.push(`<li class="text-gray-700">${content}</li>`);
+        } else {
+            if (inList) {
+                result.push('</ul>');
+                inList = false;
+            }
+            if (line.trim()) {
+                result.push(`<div class="text-gray-700 leading-relaxed my-2">${line}</div>`);
+            } else {
+                result.push('<div class="h-3"></div>');
+            }
+        }
+    }
 
-      if (inList) {
-          result.push('</ul>');
-      }
+    if (inList) {
+        result.push('</ul>');
+    }
 
-      return result.join('');
-  }
+    return result.join('');
+}
 
-  form.onsubmit = async (e) => {
-      e.preventDefault();
-      summaryDiv.innerHTML = "<p>Fetching PR data...</p>";
-      prInfoDiv.innerHTML = "";
-      filesTableContainer.innerHTML = "";
+form.onsubmit = async (e) => {
+    e.preventDefault();
 
-      const owner = document.getElementById("owner").value.trim();
-      const repo = document.getElementById("repo").value.trim();
-      const pr_number = Number.parseInt(document.getElementById("pr_number").value);
+    // Show loading state
+    summaryContainer.classList.remove('hidden');
+    summaryDiv.innerHTML = `
+      <div class="flex items-center justify-center gap-3">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <span class="text-gray-600">Fetching PR data...</span>
+      </div>
+    `;
+    prInfoContainer.classList.add('hidden');
+    filesTableContainer.classList.add('hidden');
 
-      try {
-          // Fetch PR metadata
-          const fetchRes = await fetch("http://127.0.0.1:8000/fetch-pr", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ owner, repo, pr_number })
-          });
-          const fetchData = await fetchRes.json();
-          if (!fetchData.success) {
-              summaryDiv.innerHTML = `<p>Error fetching PR: ${fetchData.error}</p>`;
-              return;
-          }
+    const owner = document.getElementById("owner").value.trim();
+    const repo = document.getElementById("repo").value.trim();
+    const pr_number = Number.parseInt(document.getElementById("pr_number").value);
 
-          const pr = fetchData.pr;
+    try {
+        // Fetch PR metadata
+        const fetchRes = await fetch("http://127.0.0.1:8000/fetch-pr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ owner, repo, pr_number })
+        });
+        const fetchData = await fetchRes.json();
+        if (!fetchData.success) {
+            summaryDiv.innerHTML = `
+              <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+                <strong>Error:</strong> ${fetchData.error}
+              </div>
+            `;
+            return;
+        }
 
-          // Display PR info
-          prInfoDiv.innerHTML = `
-              <p><strong>Title:</strong> ${pr.title}</p>
-              <p><strong>Author:</strong> ${pr.user}</p>
-              <p><strong>State:</strong> ${pr.state}</p>
-              <p><strong>Labels:</strong> ${pr.labels.join(", ") || "None"}</p>
-              <p><strong>Assignees:</strong> ${pr.assignees.join(", ") || "None"}</p>
-              <p><strong>URL:</strong> <a href="${pr.url}" target="_blank" class="text-blue-600 underline">${pr.url}</a></p>
-          `;
+        const pr = fetchData.pr;
 
-          // Files table
-          if (pr.diff_summary.length > 0) {
-              const table = document.createElement("table");
-              table.className = "min-w-full bg-white border border-gray-300";
-              table.innerHTML = `
-                  <thead class="bg-gray-100">
-                      <tr>
-                          <th class="border px-3 py-1 text-left">File</th>
-                          <th class="border px-3 py-1 text-left text-green-600">Additions</th>
-                          <th class="border px-3 py-1 text-left text-red-600">Deletions</th>
-                          <th class="border px-3 py-1 text-left">Total Changes</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      ${pr.diff_summary.map(f => `
-                          <tr>
-                              <td class="border px-3 py-1">${f.filename}</td>
-                              <td class="border px-3 py-1 text-green-600">+${f.additions}</td>
-                              <td class="border px-3 py-1 text-red-600">-${f.deletions}</td>
-                              <td class="border px-3 py-1">${f.changes}</td>
-                          </tr>`).join('')}
-                  </tbody>
-              `;
-              filesTableContainer.appendChild(table);
-          }
+        // Display PR info
+        prInfoContainer.classList.remove('hidden');
+        prInfoContent.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">Title:</span>
+                <span class="text-gray-900">${pr.title}</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">Author:</span>
+                <span class="text-gray-900">${pr.user}</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">State:</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pr.state === 'open' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}">
+                  ${pr.state}
+                </span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">Labels:</span>
+                <span class="text-gray-900">${pr.labels.join(", ") || "None"}</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">Assignees:</span>
+                <span class="text-gray-900">${pr.assignees.join(", ") || "None"}</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="font-semibold text-gray-700 min-w-20">URL:</span>
+                <a href="${pr.url}" target="_blank" class="text-purple-600 hover:text-purple-700 underline break-all">${pr.url}</a>
+              </div>
+            </div>
+        `;
 
-          // Summarize PR
-          summaryDiv.innerHTML = "<p>Generating summary...</p>";
-          const summarizeRes = await fetch("http://127.0.0.1:8000/summarize-pr", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(pr)
-          });
-          const summarizeData = await summarizeRes.json();
-          if (!summarizeData.success) {
-              summaryDiv.innerHTML = `<p>Error summarizing PR: ${summarizeData.error}</p>`;
-              return;
-          }
+        // Files table
+        if (pr.diff_summary.length > 0) {
+            filesTableContainer.classList.remove('hidden');
+            const table = document.createElement("table");
+            table.className = "min-w-full";
+            table.innerHTML = `
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">File</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-green-700">Additions</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-red-700">Deletions</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    ${pr.diff_summary.map(f => `
+                        <tr class="hover:bg-purple-50 transition-colors">
+                            <td class="px-4 py-3 text-sm text-gray-900 font-mono">${f.filename}</td>
+                            <td class="px-4 py-3 text-sm text-green-600 font-medium">+${f.additions}</td>
+                            <td class="px-4 py-3 text-sm text-red-600 font-medium">-${f.deletions}</td>
+                            <td class="px-4 py-3 text-sm text-gray-700 font-medium">${f.changes}</td>
+                        </tr>`).join('')}
+                </tbody>
+            `;
+            filesTable.innerHTML = '';
+            filesTable.appendChild(table);
+        }
 
-          const summaries = summarizeData.summary;
-          currentSummaries = summaries;
+        // Summarize PR
+        summaryDiv.innerHTML = `
+          <div class="flex items-center justify-center gap-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <span class="text-gray-600">Generating AI summary...</span>
+          </div>
+        `;
+        const summarizeRes = await fetch("http://127.0.0.1:8000/summarize-pr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pr)
+        });
+        const summarizeData = await summarizeRes.json();
+        if (!summarizeData.success) {
+            summaryDiv.innerHTML = `
+              <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+                <strong>Error:</strong> ${summarizeData.error}
+              </div>
+            `;
+            return;
+        }
 
-          // Setup tab buttons with click handlers
-          document.querySelectorAll(".tab-btn").forEach(btn => {
-              btn.onclick = () => {
-                  // Remove active state from all buttons
-                  document.querySelectorAll(".tab-btn").forEach(b => {
-                      b.classList.remove('bg-blue-600', 'text-white');
-                      b.classList.add('bg-gray-200');
-                  });
+        const summaries = summarizeData.summary;
+        currentSummaries = summaries;
 
-                  // Add active state to clicked button
-                  btn.classList.remove('bg-gray-200');
-                  btn.classList.add('bg-blue-600', 'text-white');
+        // Reset all buttons first
+        document.querySelectorAll(".tab-btn").forEach(b => {
+            b.classList.remove('tab-active');
+        });
 
-                  const tabName = btn.getAttribute("data-tab");
-                  summaryDiv.innerHTML = formatSummary(summaries[tabName]);
-              }
-          });
+        // Setup tab buttons with click handlers
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.onclick = () => {
+                // Remove active state from all buttons
+                document.querySelectorAll(".tab-btn").forEach(b => {
+                    b.classList.remove('tab-active');
+                });
 
-          // Set short button as active by default
-          const shortBtn = document.querySelector('[data-tab="short"]');
-          shortBtn.classList.remove('bg-gray-200');
-          shortBtn.classList.add('bg-blue-600', 'text-white');
+                // Add active state to clicked button
+                btn.classList.add('tab-active');
 
-          // Display short summary by default
-          summaryDiv.innerHTML = formatSummary(summaries.short);
+                const tabName = btn.getAttribute("data-tab");
+                summaryDiv.innerHTML = formatSummary(summaries[tabName]);
+            }
+        });
 
-      } catch (err) {
-          summaryDiv.innerHTML = `<p>Failed: ${err.message}</p>`;
-      }
-  };
+        // Set short button as active by default
+        const shortBtn = document.querySelector('[data-tab="short"]');
+        shortBtn.classList.add('tab-active');
 
-  // Copy summary
-  copyBtn.onclick = () => {
-      const summaryText = summaryDiv.innerText || summaryDiv.textContent;
-      navigator.clipboard.writeText(summaryText);
-      alert("Summary copied!");
-  };
+        // Display short summary by default
+        summaryDiv.innerHTML = formatSummary(summaries.short);
+
+    } catch (err) {
+        summaryDiv.innerHTML = `
+          <div class="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
+            <strong>Error:</strong> ${err.message}
+          </div>
+        `;
+    }
+};
+
+// Copy summary
+copySummaryBtn.onclick = async () => {
+    const summaryText = summaryDiv.innerText || summaryDiv.textContent;
+
+    try {
+        await navigator.clipboard.writeText(summaryText);
+
+        // Visual feedback - change to checkmark
+        copySummaryBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        `;
+
+        // Change back to copy icon after 2 seconds
+        setTimeout(() => {
+            copySummaryBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            `;
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        alert('Failed to copy text');
+    }
+};
 </script>
 
 </body>
