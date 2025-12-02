@@ -22,7 +22,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/static", StaticFiles(directory="."), name="static")
+app.mount("/public", StaticFiles(directory="public"), name="public")
 
 class PRRequest(BaseModel):
     owner: str

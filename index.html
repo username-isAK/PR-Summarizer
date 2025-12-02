@@ -3,7 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PR Summarizer</title>
+
+  <title>AI-Powered GitHub PR Summarizer & Patch Explainer | Fast Code Reviews</title>
+  <meta name="title" content="AI-Powered GitHub PR Summarizer & Patch Explainer | Fast Code Reviews">
+  <meta name="description" content="AI-powered PR Summarizer that fetches GitHub pull requests, shows file changes, explains patches, and generates short, detailed, and release-note summaries for quick code reviews.">
+
+  <meta name="keywords" content="GitHub PR summarizer, AI PR summarizer, pull request summary tool, AI patch explainer, code review AI, GitHub tools, developer productivity, PR analysis tool, LLM code review, explain code changes">
+
+  <link rel="canonical" href="https://pr-summarizer-hob7.onrender.com/" />
+
+  <meta name="robots" content="index, follow" />
+  <meta name="googlebot" content="index, follow" />
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pr-summarizer-hob7.onrender.com/">
+  <meta property="og:title" content="AI-Powered GitHub PR Summarizer & Patch Explainer">
+  <meta property="og:description" content="Fetch, summarize, and explain GitHub pull requests using AI. Generate short, detailed, and release-note summaries instantly.">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://pr-summarizer-hob7.onrender.com/">
+  <meta property="twitter:title" content="AI-Powered GitHub PR Summarizer & Patch Explainer">
+  <meta property="twitter:description" content="AI tool to fetch, summarize, and explain GitHub pull requests for faster code reviews.">
+
+  <meta name="theme-color" content="#1f2937">
+  <link rel="manifest" href="/manifest.json">
+
+  <link rel="icon" type="icon" href="/public/Git-PR.ico">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AI GitHub PR Summarizer",
+    "operatingSystem": "Web",
+    "applicationCategory": "DeveloperTool",
+    "url": "https://pr-summarizer-hob7.onrender.com/",
+    "description": "AI-powered tool that fetches, summarizes, and explains GitHub pull requests. Includes file change breakdown, patch explanations, and multiple summary types.",
+    "author": {
+      "@type": "Person",
+      "name": "Your Name"
+    }
+  }
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -181,11 +223,7 @@
 
       let formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
 
-      formatted = formatted.replace(/###\s*(.+?)(\n|$)/g, '<span class="font-semibold text-lg text-gray-800">$1</span>$2');
-
-      formatted = formatted.replace(/##\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
-
-      formatted = formatted.replace(/#+\s*(.+?)(\n|$)/g, '<span class="font-semibold text-xl text-gray-800">$1</span>$2');
+      formatted = formatted.replace(/#+\s*(.+?)(\n|$)/g, '<span class="font-semibold text-gray-800">$1</span>$2');
 
       const lines = formatted.split('\n');
       let result = [];
