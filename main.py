@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from github import get_pull_request
 from summarizer import summarize_pr
@@ -28,6 +29,10 @@ class PRRequest(BaseModel):
     owner: str
     repo: str
     pr_number: int
+
+@app.get("/google1234567890abcd.html")
+def google_verification():
+    return FileResponse("google76997656fdac4091.html")
 
 @app.get("/", response_class=HTMLResponse)
 def root():
