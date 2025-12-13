@@ -23,5 +23,4 @@ An **AI Agent** to fetch and summarize GitHub Pull Requests (PRs) using the **GR
 
 - **Frontend**: HTML, JavaScript, Tailwind CSS  
 - **Backend**: FastAPI, Python  
-- **API**: GROQ API (Sanity or other CMS)  
-- **Optional**: OpenAI API for automatic PR summarization
+- **API**: GROQ API
