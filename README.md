@@ -1,6 +1,6 @@
-# ⚡ GitHub PR Summarizer
+# ⚡GitHub PR Summarizer
 
-An **AI Agent** to fetch and summarize GitHub Pull Requests (PRs) using the **GROQ API**. It displays PR metadata, file changes, and generates quick summaries in multiple formats.
+An **AI-Powered** code review tool to fetch and summarize GitHub Pull Requests (PRs) using the **GROQ API**. It displays PR metadata, file changes, and generates quick summaries in multiple formats.
 
 ---
 
